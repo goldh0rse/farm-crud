@@ -1,7 +1,6 @@
-from typing import Dict, List
-import uuid
-from src.model.userModel import User
+from typing import List
 import motor.motor_asyncio
+from src.model.userModel import User, UserRequest
 
 
 client = motor.motor_asyncio.AsyncIOMotorClient(
@@ -12,8 +11,8 @@ users = database.users  # Creates a users table
 
 
 
-async def fetch_user(id: uuid):
-    document = await users.find_one({"id": id})
+async def fetch_user(email: str):
+    document = await users.find_one({"email": email})
     return document
 
 
@@ -32,16 +31,16 @@ async def create_user(user: User) -> User:
     return User(**document) # Weird validation that the insert worked
 
 
-async def update_user(email: str, user: User) -> User:
+async def update_user(email: str, user: UserRequest) -> User:
+    # Filter out all the optionals
+    payload = { 
+        k: v for k, 
+        v in user.dict().items() if v is not None 
+    }
     response = await users.update_one(
         {"email": email},
-        {"$set": {
-            "email": user.email,
-            "password": user.password,
-            "passwordConfirmation": user.passwordConfirmation,
-            "name": user.name
-        }})
-    #return data
+        {"$set": payload})
+    # TODO: Check response for errors
     document = await users.find_one({"email": email})
     return User(**document)
 

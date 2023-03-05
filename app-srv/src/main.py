@@ -1,9 +1,8 @@
 from typing import Dict, List
-from urllib import response
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.model.userModel import User
+from src.model.userModel import User, UserRequest
 from src.util.db import *
 
 
@@ -14,8 +13,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"]
+    allow_methods=['GET', 'POST', 'PUT', 'DELETE'], # * for all
+    allow_headers=["*"] # This is bad practice
 )
 
 # GET
@@ -41,7 +40,7 @@ async def createUser(data: User) -> User:
 
 # PUT
 @app.put("/api/v1/users/{email}", response_model=User)
-async def putUser(email: str, data: User):
+async def putUser(email: str, data: UserRequest):
     response = await update_user(email, data)
     if response:
         return response
